@@ -16,7 +16,7 @@ export const prompt = `
 
 	# Suggestions:
 
-	Format an elegant response that is easy to read and looks atheistically pleasing.
+	Format an easy to read response. Format text into single paragraphs. Use markdown to format code snippets.
 	Your response should be in markdown. That is your entire response should be VALID markdown.
 	'''
 	

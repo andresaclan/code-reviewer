@@ -22,6 +22,17 @@
 	import 'prismjs/components/prism-bash'; // Bash
 	import 'prismjs/components/prism-powershell'; // PowerShell
 	import IconOpenAi from '$lib/components/IconOpenAI.svelte';
+	import IconUser from '$lib/components/IconUser.svelte';
+	import IconNewChat from '$lib/components/IconNewChat.svelte';
+	import IconSendMessage from '$lib/components/IconSendMessage.svelte';
+	import ChatFooter from '$lib/components/ChatFooter.svelte';
+	import IconStop from '$lib/components/IconStop.svelte';
+	import IconRegenerate from '$lib/components/IconRegenerate.svelte';
+
+	marked.use({
+		headerIds: false,
+		mangle: false
+	});
 
 	onMount(() => {
 		prism.highlightAll();
@@ -31,63 +42,105 @@
 		prism.highlightAll();
 	});
 
-	const { messages, handleSubmit, input, setMessages, reload } = useChat({
+	const { messages, handleSubmit, input, setMessages, isLoading, stop, reload } = useChat({
 		initialMessages: [{ role: 'system', content: prompt, id: '0' }]
 	});
 
-	// function that will reset the messages array and call the reload function
+	// function that will reset the messages array
 	function clearChat() {
 		setMessages([{ role: 'system', content: prompt, id: '0' }]);
 	}
+
+	// allows the user to submit the form by pressing enter
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+			handleSubmit(event);
+		}
+	}
 </script>
 
-<main class="p-4">
-	<div class="grid grid-cols-1 divide-y">
+<main class="flex flex-col flex-1 pb-[200px] pt-4 md:pt-10">
+	<div class="px-10">
 		{#each $messages as message}
 			<div class="flex justify-center">
-				<div class="flex w-8/12">
-					{#if message.role === 'user'}
-						<p class="p-2 rounded-md mb-2 text-white">{message.content}</p>
-					{:else if message.id === '0'}
-						<p class="p-2 rounded-md mb-2 text-white">
-							Welcome to the Code Reviewer Chatbot! I'm here to assist you with analyzing and
-							improving your code. Please provide a code snippet, and I'll provide suggestions. Feel
-							free to ask for help or provide any specific requirements you have. Let's get started!
-							write a function in java that sums two numbers
-						</p>
+				<div class="flex flex-col w-full lg:w-[650px]">
+					{#if message.id === '0'}
+						<div class="text-white p-4 border border-dark rounded-lg bg-black">
+							<h1 class="mb-2 text-md text-white font-md">
+								Welcome! I'm here to assist you with analyzing and improving your code. Please
+								provide a code snippet, and I'll provide suggestions.
+							</h1>
+						</div>
 					{:else}
-						<p class="p-2 rounded-md text-white max-w-3xl">
-							<IconOpenAi props="inline-block w-4 h-4 mr-2" />
-							{@html marked(message.content)}
-						</p>
+						<div class="flex border-t-2 border-dark">
+							{#if message.role === 'user'}
+								<IconUser props="flex-shrink-0 inline w-6 h-6 mr-2 mt-5" />
+								<div class="text-gray-200 p-2 rounded-md py-4">
+									{message.content}
+								</div>
+							{:else}
+								<IconOpenAi props="flex-shrink-0 inline w-6 h-6 mr-2 mt-5" />
+								<div class="text-gray-200 p-2 rounded-md py-4">
+									{@html marked(message.content)}
+								</div>
+							{/if}
+						</div>
 					{/if}
 				</div>
 			</div>
 		{/each}
 	</div>
 
-	<div class="flex justify-center mt-4">
-		<form class="flex" on:submit={handleSubmit}>
-			<div class="flex">
-				<textarea
-					class="w-[500px] flex-grow border border-gray-300 bg-white text-gray-800 rounded-l-md p-2 resize-none shadow-sm"
-					bind:value={$input}
-					placeholder="Enter your code..."
-				/>
-				<button
-					class="bg-green-500 hover:bg-green-600 text-white rounded-r-md px-4 py-2"
-					type="submit"
+	<div class="flex fixed inset-x-0 bottom-24 sm:bottom-36 justify-center">
+		{#if $isLoading && $messages.length > 1}
+			<button
+				on:click={() => stop()}
+				class="text-gray-200 inline-flex items-center justify-center rounded-md text-sm font-medium shadow border hover:bg-gray-200 hover:text-black h-8 px-4 py-2 bg-black"
+				><IconStop />Stop generating</button
+			>
+		{:else if $messages.length > 1 && !$isLoading}
+			<button
+				on:click={() => reload()}
+				class="text-gray-200 inline-flex items-center justify-center rounded-md text-sm font-medium shadow border hover:bg-gray-200 hover:text-black h-8 px-4 py-2"
+				><IconRegenerate />Regenerate response</button
+			>
+		{/if}
+	</div>
+	<div class="fixed bottom-0 flex justify-center w-full">
+		<div
+			class="w-full lg:w-7/12 space-y-4 border-dark border-t px-4 py-2 sm:rounded-t-xl sm:border md:py-4 bg-black"
+		>
+			<form id="myForm" on:submit={handleSubmit}>
+				<div
+					class="relative flex flex-col w-full px-8 overflow-hidden max-h-60 grow bg-black sm:rounded-md sm:border border-dark sm:px-12"
 				>
-					Generate Review
-				</button>
-				<button
-					class="bg-red-500 hover:bg-red-600 text-white rounded-md px-4 py-2 ml-2"
-					type="submit"
-					on:click={clearChat}
-				>
-					Clear Chat
-				</button>
-			</div>
-		</form>
+					<button
+						class="inline-flex items-center justify-center text-sm font-medium shadow transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border absolute left-0 top-4 h-8 w-8 rounded-full bg-transparent hover:bg-red-400 p-0 sm:left-4"
+						data-state="closed"
+						on:click={clearChat}
+						><IconNewChat /><span class="sr-only focus:not-sr-only">New Chat</span></button
+					><textarea
+						bind:value={$input}
+						on:keydown={handleKeyDown}
+						tabindex="0"
+						rows="1"
+						placeholder="Send a message."
+						spellcheck="false"
+						class="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm text-gray-200"
+						style="height: 62px !important;"
+					/>
+					<div class="absolute right-0 top-4 sm:right-4">
+						<button
+							class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-green-600 text-primary-foreground shadow-md hover:bg-green-500 h-8 w-8 p-0"
+							type="submit"
+							data-state="closed"
+							><IconSendMessage /><span class="sr-only">Send message</span></button
+						>
+					</div>
+				</div>
+			</form>
+			<ChatFooter />
+		</div>
 	</div>
 </main>
