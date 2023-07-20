@@ -30,6 +30,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const stream = OpenAIStream(response);
 		return new StreamingTextResponse(stream);
 	} catch (err) {
+		console.log(err);
 		throw new Error(`Something went wrong... ${err}`);
 	}
 };
