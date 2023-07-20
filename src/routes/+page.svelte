@@ -42,7 +42,7 @@
 		prism.highlightAll();
 	});
 
-	const { messages, handleSubmit, input, setMessages, isLoading, stop, reload } = useChat({
+	const { messages, handleSubmit, input, setMessages, isLoading, stop, reload, error } = useChat({
 		initialMessages: [{ role: 'system', content: prompt, id: '0' }]
 	});
 
@@ -64,10 +64,10 @@
 	<div class="px-10">
 		{#each $messages as message}
 			<div class="flex justify-center">
-				<div class="flex flex-col w-full lg:w-[650px]">
+				<div class="flex flex-col w-full lg:w-[750px]">
 					{#if message.id === '0'}
-						<div class="text-white p-4 border border-dark rounded-lg bg-black">
-							<h1 class="mb-2 text-md text-white font-md">
+						<div class="text-white p-4 border border-dark rounded-lg bg-black mb-4">
+							<h1 class="text-lg text-white">
 								Welcome! I'm here to assist you with analyzing and improving your code. Please
 								provide a code snippet, and I'll provide suggestions.
 							</h1>
@@ -132,7 +132,7 @@
 					/>
 					<div class="absolute right-0 top-4 sm:right-4">
 						<button
-							class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-green-600 text-primary-foreground shadow-md hover:bg-green-500 h-8 w-8 p-0"
+							class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#808080] text-primary-foreground shadow-md hover:bg-[#18C27D] h-8 w-8 p-0"
 							type="submit"
 							data-state="closed"
 							><IconSendMessage /><span class="sr-only">Send message</span></button
